@@ -99,8 +99,6 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
-          - AttributeName: message
-            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
