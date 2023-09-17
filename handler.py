@@ -26,7 +26,7 @@ def getHttpResponse(status_code: int = 200, body: BaseModel = None):
 
     return {
         "statusCode": 200,
-        "body": body.model_dump_json() if body else {"message": "OK"},
+        "body": body.model_dump_json() if body else json.dumps({"message": "OK"}),
     }
 
 
@@ -44,6 +44,9 @@ def deserializeItems(items: list[dict[str, dict[str:any]]]) -> list[dict[str, an
 class Message(BaseModel):
     id: str
     message: Optional[str] = None
+
+
+# REQUEST SCHEMAS
 
 
 # RESPONSE SCHEMAS
@@ -75,13 +78,13 @@ def listMessage(event, context):
     get_response = (
         db_client.scan(
             TableName="my-table",
-            Limit=1,
+            Limit=10,
             ExclusiveStartKey=has_next,
         )
         if has_next
         else db_client.scan(
             TableName="my-table",
-            Limit=1,
+            Limit=10,
         )
     )
 
@@ -97,24 +100,20 @@ def listMessage(event, context):
 
 ### POST
 def createMessage(event, context):
-    print(event)
-
-    item_python_dict = {
-        "id": str(uuid4()),
-        "message": "hi",
-    }
+    print(event["body"])
+    body = json.loads(event["body"])
+    id = str(uuid4())
 
     item_dynamodb_json = {
-        k: serializer.serialize(v) for k, v in item_python_dict.items()
+        k: serializer.serialize(v)
+        for k, v in {
+            "id": id,
+            "message": body["message"],
+        }.items()
     }
 
-    # db_client.put_item(TableName="my-table", Item=item_dynamodb_json)
-    response = {
-        "statusCode": 200,
-        "body": json.dumps({"data": {"id": "", "message": ""}}),
-    }
-
-    return response
+    db_client.put_item(TableName="my-table", Item=item_dynamodb_json)
+    return getHttpResponse()
 
 
 ## /messages/{id}
