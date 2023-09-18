@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: mynamodb-service
+service: dynamodb-service-sample
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
